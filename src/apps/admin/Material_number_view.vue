@@ -2,12 +2,25 @@
   <div style="display: flex; flex-direction: column; height: 100vh;">
     <el-card class="material-card">
       <div style="display: flex; align-items: center; justify-content: space-between;">
-        <el-input
-            v-model="searchQuery"
-            placeholder="数据综合检索"
-            style="width: 300px;"
-            @input="searchMaterials"
-        ></el-input>
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <el-select 
+            v-model="repositoryType" 
+            placeholder="选择仓库类型" 
+            style="width: 180px;"
+            @change="filterByRepositoryType"
+          >
+            <el-option label="全部" value="all"></el-option>
+            <el-option label="事务所仓库" value="事务所仓库"></el-option>
+            <el-option label="工厂消耗品仓库" value="工厂消耗品仓库"></el-option>
+          </el-select>
+          
+          <el-input
+              v-model="searchQuery"
+              placeholder="数据综合检索"
+              style="width: 300px;"
+              @input="searchMaterials"
+          ></el-input>
+        </div>
         
         <div class="total-amount">
           当前在库金额: <span class="amount-value">{{ getTotalAmount() }}</span>
@@ -22,6 +35,7 @@
           border
           stripe
           :summary-method="getSummary">
+        <el-table-column prop="warehouse_type" label="仓库类型"></el-table-column>
         <el-table-column prop="name" label="名称"></el-table-column>
         <el-table-column prop="specifications" label="规格"></el-table-column>
         <el-table-column prop="unit" label="单位"></el-table-column>
@@ -48,6 +62,9 @@
         <el-form-item label="材料名称">
           <el-input v-model="stockForm.name" disabled></el-input>
         </el-form-item>
+        <el-form-item label="仓库类型">
+          <el-input v-model="stockForm.warehouse_type" disabled></el-input>
+        </el-form-item>
         <el-form-item label="入库数量">
           <el-input
               type="number"
@@ -71,10 +88,12 @@ export default {
       materials: [],
       filteredMaterials: [],
       searchQuery: '',
+      repositoryType: 'all', // 默认显示全部仓库类型
       stockDialogVisible: false,
       stockForm: {
         id: null,
         name: '',
+        warehouse_type: '',
         stockQuantity: 0
       },
     };
@@ -89,31 +108,51 @@ export default {
       this.$axios.get('/admin/Material')
           .then((res) => {
             this.materials = res.data;
-            this.filteredMaterials = res.data;
+            this.filterMaterials();
           });
     },
 
-    searchMaterials() {
-      const query = this.searchQuery.toLowerCase();
-      this.filteredMaterials = this.searchQuery
-          ? this.materials.filter(material => {
-            const name = material.name ? material.name.toLowerCase() : '';
-            const specifications = material.specifications ? material.specifications.toLowerCase() : '';
-            const unit = material.unit ? material.unit.toLowerCase() : '';
-            const price = material.price ? material.price.toString() : '';
-            const secure_days = material.secure_days ? material.secure_days.toString() : '';
-            const secure_number = material.secure_number ? material.secure_number.toString() : '';
-            const number = material.number ? material.number.toString() : '';
+    filterMaterials() {
+      // 首先按仓库类型筛选
+      let result = [...this.materials];
+      
+      if (this.repositoryType !== 'all') {
+        result = this.materials.filter(material => 
+          material.warehouse_type === this.repositoryType
+        );
+      }
+      
+      // 再按搜索条件筛选
+      if (this.searchQuery) {
+        const query = this.searchQuery.toLowerCase();
+        result = result.filter(material => {
+          const name = material.name ? material.name.toLowerCase() : '';
+          const specifications = material.specifications ? material.specifications.toLowerCase() : '';
+          const unit = material.unit ? material.unit.toLowerCase() : '';
+          const price = material.price ? material.price.toString() : '';
+          const secure_days = material.secure_days ? material.secure_days.toString() : '';
+          const secure_number = material.secure_number ? material.secure_number.toString() : '';
+          const number = material.number ? material.number.toString() : '';
 
-            return name.includes(query) ||
-                specifications.includes(query) ||
-                unit.includes(query) ||
-                price.includes(query) ||
-                secure_days.includes(query) ||
-                secure_number.includes(query) ||
-                number.includes(query);
-          })
-          : this.materials;
+          return name.includes(query) ||
+              specifications.includes(query) ||
+              unit.includes(query) ||
+              price.includes(query) ||
+              secure_days.includes(query) ||
+              secure_number.includes(query) ||
+              number.includes(query);
+        });
+      }
+      
+      this.filteredMaterials = result;
+    },
+
+    searchMaterials() {
+      this.filterMaterials();
+    },
+
+    filterByRepositoryType() {
+      this.filterMaterials();
     },
 
     formatAmount(row) {
@@ -130,6 +169,7 @@ export default {
       this.stockForm = {
         id: material.id,
         name: material.name,
+        warehouse_type: material.warehouse_type,
         stockQuantity: 0
       };
       this.stockDialogVisible = true;
@@ -138,6 +178,7 @@ export default {
     saveStock() {
       this.$axios.post('/admin/Material/stock', {
         id: this.stockForm.id,
+        warehouse_type: this.stockForm.warehouse_type,
         stockQuantity: this.stockForm.stockQuantity
       })
           .then(() => {
