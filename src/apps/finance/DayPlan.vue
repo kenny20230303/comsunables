@@ -11,13 +11,10 @@
 
     <el-card class="material-card" style="flex: 1; display: flex; flex-direction: column; overflow: auto;">
       <el-table :data="filteredMaterials" border stripe>
-        <el-table-column prop="Material_info_id" label="Material_info_id.id"></el-table-column>
-        <el-table-column prop="department" label="所在部门"></el-table-column>
         <el-table-column prop="name" label="材料名称"></el-table-column>
         <el-table-column prop="specifications" label="材料规格"></el-table-column>
         <el-table-column prop="unit" label="材料单位"></el-table-column>
         <el-table-column prop="user_name" label="用户姓名"></el-table-column>
-        
         <el-table-column label="申请数量" width="150">
           <template slot-scope="scope">
             <div style="display: flex; align-items: center; justify-content: flex-start;">
