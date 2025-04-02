@@ -1,1 +1,24 @@
-一个消耗品程序，主要是负责申请，审批，领取，设定安全在库数量，当到达临界点时会自动触发机制向目标用户发出邮件通知
+# vue-web
+
+## Project setup
+```
+npm install
+```
+
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
