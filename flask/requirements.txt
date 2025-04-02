@@ -1,0 +1,5 @@
+flask==2.0.1
+flask-cors==3.0.10
+sqlalchemy==1.4.23
+openpyxl==3.0.9
+# PyInstaller将由build.py根据Python版本自动安装兼容版本
